@@ -63,6 +63,7 @@
 
   // ——— Вкладки ———
   function showTab(name) {
+    document.body.dataset.tab = name;
     document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
     document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.id === "tab-" + name));
     if (name === "home") renderHome();
@@ -598,11 +599,18 @@
     const hit = THEME_WORDS.find(([, re]) => re.test(q));
     return hit ? hit[0] : null;
   }
-  const HOME_SPREADS = [["day", "Карта дня", "1 карта"], ["ppf", "Прошлое · настоящее · будущее", "3 карты"], ["yesno", "Да или нет", "3 карты"],
+  const HOME_SPREADS = [["day", "Карта дня", "1 карта"], ["ppf", "Прошлое, настоящее, будущее", "3 карты"], ["yesno", "Да или нет", "3 карты"],
     ["lmh", "Любовь, деньги, дом", "4 карты"], ["celtic", "Кельтский крест", "10 карт"], ["free", "Свободный", "сколько угодно"]];
   const home = { theme: null, manual: false, spread: "ppf" };
   function renderHome() {
-    if (!$("#homeArt").innerHTML) $("#homeArt").innerHTML = window.ART.framed("venus");
+    const now = new Date();
+    $("#homeDate").textContent = now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, c => c.toUpperCase());
+    // Карта дня: одна и та же весь день
+    const key = now.toISOString().slice(0, 10);
+    let hsh = 0; for (const ch of key) hsh = (hsh * 31 + ch.charCodeAt(0)) >>> 0;
+    const dc = ALL[hsh % 78], drev = state.useRev && (hsh >> 7) % 4 === 0;
+    $("#dayCard").innerHTML = `<div class="img">${imgTag(dc.id, drev)}</div><div><b>${esc(T.fullName(dc, drev))}</b><div class="keys">${esc(drev ? dc.kRev : dc.kUp)}</div><div class="hint">${esc((drev ? dc.rev : dc.up)[0])}</div></div>`;
+    $("#dayCard").onclick = () => openCard(dc.id);
     if (!$("#homeCards").innerHTML) $("#homeCards").innerHTML = ["vsLovers", "vsStar", "vsMoon", "vsSun"].map(k => window.ART.framed(k, { short: true, thin: true })).join("");
     const auto = !home.manual ? detectTheme($("#homeQ").value) : null;
     const th = home.manual ? home.theme : auto || home.theme || "general";
@@ -628,7 +636,6 @@
     setSpread(home.spread, false);
     showTab("read");
   });
-  $("#brandHome").onclick = () => showTab("home");
 
   // ——— Своя колода из картинок ———
   function customPanel() {
