@@ -605,13 +605,6 @@
   function renderHome() {
     const now = new Date();
     $("#homeDate").textContent = now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, c => c.toUpperCase());
-    // Карта дня: одна и та же весь день
-    const key = now.toISOString().slice(0, 10);
-    let hsh = 0; for (const ch of key) hsh = (hsh * 31 + ch.charCodeAt(0)) >>> 0;
-    const dc = ALL[hsh % 78], drev = state.useRev && (hsh >> 7) % 4 === 0;
-    $("#dayCard").innerHTML = `<div class="img">${imgTag(dc.id, drev)}</div><div><b>${esc(T.fullName(dc, drev))}</b><div class="keys">${esc(drev ? dc.kRev : dc.kUp)}</div><div class="hint">${esc((drev ? dc.rev : dc.up)[0])}</div></div>`;
-    $("#dayCard").onclick = () => openCard(dc.id);
-    if (!$("#homeCards").innerHTML) $("#homeCards").innerHTML = ["vsLovers", "vsStar", "vsMoon", "vsSun"].map(k => window.ART.framed(k, { short: true, thin: true })).join("");
     const auto = !home.manual ? detectTheme($("#homeQ").value) : null;
     const th = home.manual ? home.theme : auto || home.theme || "general";
     $("#homeTheme").textContent = home.manual ? "" : auto ? `Похоже, тема — «${T.themeName(auto)}». Можно выбрать другую:` : "Тема вопроса:";

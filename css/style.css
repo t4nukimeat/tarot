@@ -37,10 +37,7 @@ body::before {
   background: url("../assets/ren/wall-venus.jpg") center / cover no-repeat;
   transition: opacity .4s;
 }
-body::after { content: ""; position: fixed; inset: 0; z-index: -1; background: rgba(240, 242, 246, .28); }
-body[data-tab="spreads"]::before { background-image: url("../assets/ren/wall-annunciation.jpg"); }
-body[data-tab="cards"]::before { background-image: url("../assets/ren/wall-graces.jpg"); }
-body[data-tab="decks"]::before, body[data-tab="journal"]::before { background-image: url("../assets/ren/wall-putti.jpg"); }
+body::after { content: ""; position: fixed; inset: 0; z-index: -1; background: rgba(240, 242, 246, .18); }
 body[data-tab="home"]::before { background-image: url("../assets/ren/venus.jpg"); background-position: 52% 30%; }
 body[data-tab="home"]::after { background: linear-gradient(180deg, rgba(10, 20, 30, .28) 0%, rgba(10, 20, 30, 0) 38%, rgba(10, 20, 30, .12) 100%); }
 
@@ -132,7 +129,7 @@ select.input { cursor: pointer; appearance: none; background-image: url("data:im
 /* ——— Стартовая страница: экран блокировки ——— */
 #tab-home { color: #fff; }
 .home { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 40px; align-items: start; min-height: calc(100vh - 200px); }
-.home-lock { padding-top: 4vh; text-shadow: 0 2px 24px rgba(0, 0, 0, .35); }
+.home-lock { margin-top: 4vh; padding: 26px 30px 30px; border-radius: var(--r-xl); background: rgba(16, 24, 36, .38); -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3); text-shadow: 0 1px 12px rgba(0, 0, 0, .3); max-width: 640px; }
 .home-date { font: 500 1.25rem var(--ui); opacity: .95; }
 .home-title { font: 400 clamp(3.6rem, 8vw, 7rem)/0.95 var(--display); margin: 6px 0 14px; letter-spacing: -.01em; animation: rise .8s cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
