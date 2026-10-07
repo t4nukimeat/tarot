@@ -34,11 +34,12 @@ body {
 /* Обои: размытая картина за стеклом (меняется по вкладкам) */
 body::before {
   content: ""; position: fixed; inset: 0; z-index: -2;
-  background: url("../assets/ren/wall-venus.jpg") center / cover no-repeat;
+  background: url("../assets/ren/wall-main.jpg") center / cover no-repeat;
   transition: opacity .4s;
 }
 body::after { content: ""; position: fixed; inset: 0; z-index: -1; background: rgba(240, 242, 246, .18); }
-body[data-tab="home"]::before { background-image: url("../assets/ren/venus.jpg"); background-position: 52% 30%; }
+body[data-tab="home"]::before { background-image: url("../assets/ren/bg-main.jpg"); background-position: center; }
+body[data-tab="journal"]::before { background-image: url("../assets/ren/wall-journal.jpg"); }
 body[data-tab="home"]::after { background: linear-gradient(180deg, rgba(10, 20, 30, .28) 0%, rgba(10, 20, 30, 0) 38%, rgba(10, 20, 30, .12) 100%); }
 
 button, input, select, textarea { font: inherit; color: inherit; }
