@@ -715,7 +715,7 @@
     const list = store.get("journal", []);
     const box = $("#journalView");
     box.innerHTML = `<div class="on-wall"><h2 class="gilt-text">Дневник раскладов</h2><p class="hint">Хранится только в этом браузере.</p></div>`;
-    if (!list.length) { box.append(h(`<div class="empty-state">${window.ART.framed("annunciation")}<p>Пока пусто (｡•́︿•̀｡) Сохраните расклад кнопкой «Сохранить в дневник».</p></div>`)); return; }
+    if (!list.length) { box.append(h(`<div class="empty-state"><p>Пока пусто (｡•́︿•̀｡) Сохраните расклад кнопкой «Сохранить в дневник».</p></div>`)); return; }
     list.forEach((j, idx) => {
       const sp = spreadById(j.spread);
       const d = DECKS.find(x => x.id === j.deck);
