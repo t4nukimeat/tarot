@@ -284,7 +284,7 @@
     box.append(p2);
 
     if (filled.length >= 2) {
-      const p3 = h(`<div class="panel"><h2>Как карты взаимодействуют</h2><p class="sub">Связи в теме «${esc(tn)}»: соседние карты и особые сочетания.</p><div class="list"></div></div>`);
+      const p3 = h(`<div class="panel"><h2>Как карты взаимодействуют ♡</h2><p class="sub">Связи в теме «${esc(tn)}»: соседние карты и особые сочетания.</p><div class="list"></div></div>`);
       p3.prepend(art("graces"));
       T.pairsFor(items, sp).forEach(({ i, j, label }) => {
         const A = items[i], B = items[j];
@@ -302,7 +302,7 @@
       const sum = T.summary(items, state.theme, sp);
       if (sum.length) {
         const pS = h(`<div class="panel"><h2>Общая картина</h2>${sum.map(l => `<div class="line"><span class="ic">${ICON[l.kind] || "·"}</span><span>${esc(l.text)}</span></div>`).join("")}
-          <p class="hint">Это подсказки, а не готовый ответ: толкование остаётся за вами.</p></div>`);
+          <p class="hint">Это подсказки, а не готовый ответ: толкование остаётся за вами (◕‿◕✿)</p></div>`);
         pS.prepend(art("putti")); box.append(pS);
       }
     }
@@ -337,7 +337,7 @@
     let tmr;
     document.querySelectorAll("#modalBody .notes-box textarea").forEach(ta => ta.addEventListener("input", () => {
       setNote(id, ta.dataset.rev === "1", ta.value);
-      clearTimeout(tmr); const sv = document.querySelector("#modalBody .saved"); sv.textContent = "Сохранено ✓"; tmr = setTimeout(() => (sv.textContent = ""), 1400);
+      clearTimeout(tmr); const sv = document.querySelector("#modalBody .saved"); sv.textContent = "Сохранено ✓ (˶ᵔ ᵕ ᵔ˶)"; tmr = setTimeout(() => (sv.textContent = ""), 1400);
     }));
   }
   // Заметка под картой в раскладе: показать и дописать
@@ -605,7 +605,7 @@
   function renderHome() {
     const auto = !home.manual ? detectTheme($("#homeQ").value) : null;
     const th = home.manual ? home.theme : auto || home.theme || "general";
-    $("#homeTheme").textContent = home.manual ? "" : auto ? `Похоже, тема — «${T.themeName(auto)}». Можно выбрать другую:` : "Тема вопроса:";
+    $("#homeTheme").textContent = home.manual ? "" : auto ? `Похоже, тема — «${T.themeName(auto)}» (・ω・) Можно выбрать другую:` : "Тема вопроса:";
     $("#homeChips").innerHTML = M.themes.map(t => `<button type="button" class="chip ${t.id === th ? "on" : ""}" data-id="${t.id}">${t.icon} ${esc(t.name)}</button>`).join("");
     $("#homeSpreads").innerHTML = HOME_SPREADS.map(([id, n, c]) => `<button type="button" class="${id === home.spread ? "on" : ""}" data-id="${id}">${esc(n)}<small>${esc(c)}</small></button>`).join("") +
       `<button type="button" data-more="1">Другие схемы…<small>мини-расклады, год, чакры</small></button>`;
@@ -709,13 +709,13 @@
     const list = store.get("journal", []);
     list.unshift({ at: new Date().toISOString(), theme: state.theme, question: state.question, spread: state.spreadId, deck: deck() && deck().id, useRev: state.useRev, items: state.items, notes });
     store.set("journal", list.slice(0, 300));
-    toast("Сохранено в дневник");
+    toast("Сохранено в дневник ✧");
   }
   function renderJournal() {
     const list = store.get("journal", []);
     const box = $("#journalView");
     box.innerHTML = `<div class="on-wall"><h2 class="gilt-text">Дневник раскладов</h2><p class="hint">Хранится только в этом браузере.</p></div>`;
-    if (!list.length) { box.append(h(`<div class="empty-state">${window.ART.framed("annunciation")}<p>Пока пусто. Сохраните расклад кнопкой «Сохранить в дневник».</p></div>`)); return; }
+    if (!list.length) { box.append(h(`<div class="empty-state">${window.ART.framed("annunciation")}<p>Пока пусто (｡•́︿•̀｡) Сохраните расклад кнопкой «Сохранить в дневник».</p></div>`)); return; }
     list.forEach((j, idx) => {
       const sp = spreadById(j.spread);
       const d = DECKS.find(x => x.id === j.deck);
