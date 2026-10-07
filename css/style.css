@@ -1,11 +1,11 @@
-/* Тема «Ренессанс как iOS»: картины-обои, матовое стекло, лазурит и мадder вместо золота. */
+/* Тема «Ренессанс как iOS»: картины-обои, матовое стекло, розовый Боттичелли вместо золота. */
 :root {
-  --lapis: #2b4c7e;
-  --lapis-soft: rgba(43, 76, 126, .1);
+  --lapis: #c4547f;
+  --lapis-soft: rgba(196, 84, 127, .12);
   --sea: #5e8f82;
   --sea-soft: rgba(94, 143, 130, .14);
-  --madder: #b5475b;
-  --madder-soft: rgba(181, 71, 91, .12);
+  --madder: #9e3a36;
+  --madder-soft: rgba(158, 58, 54, .1);
   --ink: #16181d;
   --ink2: #3a3f4a;
   --muted: #5e6470;
@@ -42,7 +42,7 @@ body[data-tab="home"]::before { background-image: url("../assets/ren/venus.jpg")
 body[data-tab="home"]::after { background: linear-gradient(180deg, rgba(10, 20, 30, .28) 0%, rgba(10, 20, 30, 0) 38%, rgba(10, 20, 30, .12) 100%); }
 
 button, input, select, textarea { font: inherit; color: inherit; }
-:focus-visible { outline: 3px solid rgba(43, 76, 126, .55); outline-offset: 2px; }
+:focus-visible { outline: 3px solid rgba(196, 84, 127, .55); outline-offset: 2px; }
 h1, h2, h3, h4 { margin: 0 0 .35em; line-height: 1.12; letter-spacing: -.01em; }
 h2 { font: 400 2.5rem/1.05 var(--display); color: var(--ink); letter-spacing: 0; }
 h3 { font: 600 1.22rem/1.25 var(--ui); }
@@ -67,7 +67,7 @@ code { font: .85em ui-monospace, monospace; background: var(--fill); padding: 2p
 }
 .tabs button svg { width: 24px; height: 24px; }
 .tabs button:hover { color: var(--ink); }
-.tabs button.on { color: var(--lapis); background: rgba(43, 76, 126, .1); }
+.tabs button.on { color: var(--lapis); background: rgba(196, 84, 127, .1); }
 
 main { position: relative; padding: 34px 32px 130px; max-width: 1440px; margin: 0 auto; }
 .tab { display: none; }
@@ -97,7 +97,7 @@ main { position: relative; padding: 34px 32px 130px; max-width: 1440px; margin: 
   width: 100%; padding: 11px 14px; border: 0; border-radius: var(--r-m); background: rgba(255, 255, 255, .78); outline: none; color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--hair);
 }
-.input:focus { box-shadow: inset 0 0 0 2px rgba(43, 76, 126, .6); background: #fff; }
+.input:focus { box-shadow: inset 0 0 0 2px rgba(196, 84, 127, .6); background: #fff; }
 .input.small { max-width: 340px; }
 select.input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%235e6470' stroke-width='2' stroke-linecap='round'/></svg>"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
 .btn {
@@ -118,7 +118,7 @@ select.input { cursor: pointer; appearance: none; background-image: url("data:im
   border: 0; background: var(--fill); padding: 6px 13px; border-radius: 999px; cursor: pointer; font: 500 .9rem var(--ui); color: var(--ink2);
 }
 .chip:hover { background: rgba(118, 118, 128, .2); }
-.chip.on { background: #fff; color: var(--lapis); box-shadow: 0 2px 8px rgba(20, 30, 60, .15), inset 0 0 0 1.5px rgba(43, 76, 126, .5); }
+.chip.on { background: #fff; color: var(--lapis); box-shadow: 0 2px 8px rgba(20, 30, 60, .15), inset 0 0 0 1.5px rgba(196, 84, 127, .5); }
 /* Переключатель как в iOS */
 .switch { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--ink2); font-size: .95rem; margin-bottom: 12px; }
 .switch input { appearance: none; width: 46px; height: 28px; border-radius: 999px; background: rgba(118, 118, 128, .3); position: relative; cursor: pointer; transition: background .2s; flex: none; margin: 0; }
@@ -143,7 +143,7 @@ select.input { cursor: pointer; appearance: none; background-image: url("data:im
 .spread-pick { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .spread-pick button { text-align: left; padding: 9px 12px; border: 0; background: var(--fill); cursor: pointer; border-radius: var(--r-m); line-height: 1.2; color: var(--ink); font-weight: 500; }
 .spread-pick button small { display: block; color: var(--muted); font-size: .8rem; font-weight: 400; margin-top: 2px; }
-.spread-pick button.on { background: #fff; box-shadow: 0 2px 8px rgba(20, 30, 60, .14), inset 0 0 0 1.5px rgba(43, 76, 126, .5); }
+.spread-pick button.on { background: #fff; box-shadow: 0 2px 8px rgba(20, 30, 60, .14), inset 0 0 0 1.5px rgba(196, 84, 127, .5); }
 .home-widgets { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-top: 26px; max-width: 760px; }
 .widget { padding: 16px; color: var(--ink); }
 .widget h4 { margin: 0 0 10px; font-size: .95rem; color: var(--muted); font-weight: 500; }
