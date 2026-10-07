@@ -29,12 +29,29 @@
     search: "",
   };
 
-  const deco = (img, cls) => h(`<div class="panel-deco ${cls || ""}">${window.DECOR ? window.DECOR.blob(img, { sw: 13 }) : ""}</div>`);
+  // Картина в раме, плавающая справа в панели
+  const art = key => h(`<div class="panel-art">${window.ART.framed(key, { short: true })}</div>`);
+  let STATIC_DECKS = DECKS.slice();
+
+  // ——— Мои заметки к картам ———
+  const notes = () => store.get("cardNotes", {});
+  function getNote(id, rev) { const n = notes()[id]; return n ? (rev ? n.rev : n.up) || "" : ""; }
+  function setNote(id, rev, text) {
+    const all = notes(); all[id] = all[id] || {}; all[id][rev ? "rev" : "up"] = text;
+    if (!all[id].up && !all[id].rev) delete all[id];
+    store.set("cardNotes", all);
+  }
+  const hasNote = id => { const n = notes()[id]; return !!(n && (n.up || n.rev)); };
 
   // ——— Колода и картинки ———
   function deck() { return DECKS.find(d => d.id === state.deckId) || DECKS[0] || null; }
   function img(cardId, d) {
     d = d || deck();
+    if (d && d.custom) {
+      if (d.cards[cardId]) return d.cards[cardId];
+      const base = DECKS.find(x => x.id === d.base && !x.custom);
+      return base ? img(cardId, base) : null;
+    }
     const f = d && d.cards && d.cards[cardId];
     return f ? `decks/${encodeURIComponent(d.id)}/raw/${encodeURIComponent(f)}` : null;
   }
@@ -48,6 +65,7 @@
   function showTab(name) {
     document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
     document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.id === "tab-" + name));
+    if (name === "home") renderHome();
     if (name === "spreads") renderSpreads();
     if (name === "cards") renderLibrary();
     if (name === "decks") renderDecks();
@@ -255,15 +273,18 @@
           <div class="keys">${esc(tx.keys)}</div>
           <p>${esc(tx.text)}</p>
           ${state.theme !== "general" ? `<p class="general"><b>В целом:</b> ${esc(tx.general)}</p>` : ""}
+          <div class="note-slot"></div>
         </div></div>`);
       node.querySelector(".img").onclick = () => openCard(c.id);
+      noteWidget(node.querySelector(".note-slot"), c.id, it.rev);
       p2.querySelector(".list").append(node);
     });
-    p2.append(deco("assets/decor/roses.jpg"));
+    p2.prepend(art("venusFace"));
     box.append(p2);
 
     if (filled.length >= 2) {
       const p3 = h(`<div class="panel"><h2>Как карты взаимодействуют</h2><p class="sub">Связи в теме «${esc(tn)}»: соседние карты и особые сочетания.</p><div class="list"></div></div>`);
+      p3.prepend(art("graces"));
       T.pairsFor(items, sp).forEach(({ i, j, label }) => {
         const A = items[i], B = items[j];
         const r = T.pair(A, B, state.theme);
@@ -281,7 +302,7 @@
       if (sum.length) {
         const pS = h(`<div class="panel"><h2>Общая картина</h2>${sum.map(l => `<div class="line"><span class="ic">${ICON[l.kind] || "·"}</span><span>${esc(l.text)}</span></div>`).join("")}
           <p class="hint">Это подсказки, а не готовый ответ: толкование остаётся за вами.</p></div>`);
-        pS.append(deco("assets/decor/daisies.jpg")); box.append(pS);
+        pS.prepend(art("putti")); box.append(pS);
       }
     }
 
@@ -306,8 +327,35 @@
         <p class="hint">Да/нет: ${esc(yes)} (перевёрнутая — «нет»).</p>
         ${refl.length ? `<p class="hint"><b>Отражения в младших арканах:</b> ${refl.map(esc).join("; ")}</p>` : ""}
         ${back.length ? `<p class="hint"><b>Отражает старший аркан:</b> ${back.map(esc).join("; ")}</p>` : ""}
+        <div class="notes-box"><h3>Мои заметки к карте</h3>
+          <label>В прямом положении</label><textarea class="input" data-rev="0" placeholder="Что эта карта значит для вас?">${esc(getNote(id, false))}</textarea>
+          <label>В перевёрнутом положении</label><textarea class="input" data-rev="1" placeholder="Ваши наблюдения о перевёрнутой карте">${esc(getNote(id, true))}</textarea>
+          <div class="saved"></div></div>
         <table><thead><tr><th></th><th>Прямая</th><th>Перевёрнутая</th></tr></thead><tbody>${rows}</tbody></table>
       </div></div>`));
+    let tmr;
+    document.querySelectorAll("#modalBody .notes-box textarea").forEach(ta => ta.addEventListener("input", () => {
+      setNote(id, ta.dataset.rev === "1", ta.value);
+      clearTimeout(tmr); const sv = document.querySelector("#modalBody .saved"); sv.textContent = "Сохранено ✓"; tmr = setTimeout(() => (sv.textContent = ""), 1400);
+    }));
+  }
+  // Заметка под картой в раскладе: показать и дописать
+  function noteWidget(box, id, rev) {
+    const draw = () => {
+      const t = getNote(id, rev);
+      box.innerHTML = (t ? `<div class="mynote"><b>Моя заметка${rev ? " (перевёрнутая)" : ""}:</b> ${esc(t)}</div>` : "") +
+        `<button class="link-btn">${t ? "Изменить заметку" : "✎ Добавить свою заметку к карте"}</button>`;
+      box.querySelector(".link-btn").onclick = edit;
+    };
+    const edit = () => {
+      box.innerHTML = `<div class="note-edit"><textarea class="input" placeholder="Ваше значение этой карты${rev ? " в перевёрнутом положении" : ""}">${esc(getNote(id, rev))}</textarea>
+        <div class="row-btns"><button class="btn">Сохранить</button><button class="btn ghost">Отмена</button></div></div>`;
+      const [save, cancel] = box.querySelectorAll("button");
+      save.onclick = () => { setNote(id, rev, box.querySelector("textarea").value.trim()); draw(); };
+      cancel.onclick = draw;
+      box.querySelector("textarea").focus();
+    };
+    draw();
   }
 
   // ——— Библиотека карт ———
@@ -315,7 +363,7 @@
   function renderLibrary() {
     suitTabs($("#libSuitTabs"), libFilter);
     $("#libGrid").innerHTML = filterCards(libFilter, libSearch).map(c =>
-      `<button class="pick" data-id="${c.id}"><div class="img">${imgTag(c.id, false)}</div><span class="cap"><b style="color:var(--ink)">${esc(c.name)}</b><br>${esc(c.kUp)}</span></button>`).join("");
+      `<button class="pick" data-id="${c.id}">${hasNote(c.id) ? `<span class="note-mark" title="Есть ваша заметка">✎</span>` : ""}<div class="img">${imgTag(c.id, false)}</div><span class="cap"><b>${esc(c.name)}</b><br>${esc(c.kUp)}</span></button>`).join("");
   }
   $("#libSuitTabs").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) { libFilter = b.dataset.f; renderLibrary(); } });
   $("#libSearch").addEventListener("input", e => { libSearch = e.target.value; renderLibrary(); });
@@ -336,12 +384,12 @@
     curSpread = id;
     document.querySelectorAll("#spreadList button").forEach(b => b.classList.toggle("on", b.dataset.id === id));
     const box = $("#spreadDetail");
-    if (id === "guide") { box.innerHTML = GUIDE; box.append(deco("assets/decor/mist.jpg")); return; }
+    if (id === "guide") { box.innerHTML = GUIDE; box.querySelector(".guide").prepend(art("melencolia")); return; }
     const sp = spreadById(id);
     box.innerHTML = "";
     const fixed = sp.fixedCard ? T.byId[sp.fixedCard] : null;
     box.append(h(`<div><h2>${esc(sp.name)}</h2><p>${esc(sp.about)}</p></div>`));
-    box.append(deco(["assets/decor/rose.jpg", "assets/decor/daisies.jpg", "assets/decor/mist.jpg", "assets/decor/roses.jpg"][window.SPREADS.indexOf(sp) % 4]));
+    box.prepend(art(["vsStar", "vsSun", "vsMoon", "vsLovers"][window.SPREADS.indexOf(sp) % 4]));
     if (sp.layout.length) {
       const items = sp.positions.map(p => p.fixed ? { id: p.fixed, rev: false } : null);
       const wrap = h(`<div class="board-wrap"></div>`); wrap.append(board(sp, items, 70)); box.append(wrap);
@@ -356,7 +404,7 @@
   }
   const GUIDE = `<div class="guide">
     <h2>Как гадать: основы</h2>
-    <p>Коротко по книге Лиз Дин «The Ultimate Guide to Tarot». Приложение не гадает за вас: оно подсказывает значения и связи, а вывод делаете вы.</p>
+    <p class="illum">Коротко по книге Лиз Дин «The Ultimate Guide to Tarot». Приложение не гадает за вас: оно подсказывает значения и связи, а вывод делаете вы.</p>
     <h3>Перед раскладом</h3>
     <p><b>Очистка колоды.</b> Разверните карты веером, подуйте на край, сложите и один раз постучите по колоде.</p>
     <p><b>Пространство.</b> Спокойное место, ровная поверхность и ткань для гадания. Можно зажечь свечу и задать намерение; после расклада поблагодарить и погасить свечу.</p>
@@ -380,35 +428,43 @@
 
   // ——— Колоды ———
   async function refreshDecks() {
-    if (!HAS_API) return;
-    try {
-      const r = await fetch("api/decks");
-      if (r.ok && (r.headers.get("Content-Type") || "").includes("json")) DECKS = await r.json(); else HAS_API = false;
-    } catch { HAS_API = false; }
+    if (HAS_API) {
+      try {
+        const r = await fetch("api/decks");
+        if (r.ok && (r.headers.get("Content-Type") || "").includes("json")) STATIC_DECKS = await r.json(); else HAS_API = false;
+      } catch { HAS_API = false; }
+    }
+    let mine = [];
+    try { if (window.CUSTOM && window.CUSTOM.supported) mine = await window.CUSTOM.list(); } catch { /* нет IndexedDB */ }
+    DECKS = STATIC_DECKS.concat(mine);
   }
   function setDeck(id) { state.deckId = id; store.set("deck", id); renderSlots(); renderPicker(); renderResult(); renderDecks(); toast("Колода: " + (deck() ? deck().title.split(" — ")[0] : "")); }
   function renderDecks() {
     const box = $("#decksView");
     const cur = deck();
     box.innerHTML = "";
-    box.append(h(`<div><h2>Колоды</h2><p class="hint">Карты берутся из галереи rozamira-tarot.ru и хранятся у вас на компьютере. Выберите колоду для раскладов. «Проверить карты» поможет поправить, если какая-то картинка стоит не на своём месте.</p></div>`));
+    box.append(h(`<div class="on-wall"><h2 class="gilt-text">Колоды</h2><p class="hint">Выберите колоду для раскладов. Свою колоду можно собрать из собственных картинок или фотографий — кнопка ниже.</p></div>`));
     const grid = h(`<div class="deck-grid"></div>`);
     DECKS.forEach(d => {
       const n = Object.keys(d.cards || {}).length;
+      const fanIds = d.custom ? Object.keys(d.cards).concat(["maj00", "maj17", "maj21"]).slice(0, 3) : ["maj00", "maj17", "maj21"];
       const node = h(`<div class="deck ${cur && d.id === cur.id ? "on" : ""}">
-        <div class="fan"><div>${imgTag("maj00", false, d)}</div><div>${imgTag("maj17", false, d)}</div><div>${imgTag("maj21", false, d)}</div></div>
+        <div class="fan">${fanIds.map(id => `<div>${imgTag(id, false, d)}</div>`).join("")}</div>
         <h4>${esc(d.title)}</h4>
-        ${n < 78 ? `<div class="warn">Распознано ${n} из 78 — нужна проверка</div>` : d.confidence === "numbered" && !d.checked ? `<div class="warn" style="color:var(--gold)">Карты разложены по номерам — стоит проверить</div>` : ""}
-        <div class="acts"><button class="btn" data-act="use">${cur && d.id === cur.id ? "Выбрана" : "Выбрать"}</button><button class="btn ghost" data-act="map">${HAS_API ? "Проверить карты" : "Все карты"}</button>${HAS_API ? `<button class="btn danger" data-act="del" title="Удалить колоду">✕</button>` : ""}</div></div>`);
+        ${d.custom ? `<div class="tag">Своя колода · ${n} из 78${n < 78 && d.base ? ", остальные из базовой" : ""}</div>` :
+          n < 78 ? `<div class="warn">Распознано ${n} из 78 — нужна проверка</div>` : d.confidence === "numbered" && !d.checked ? `<div class="warn">Карты разложены по номерам — стоит проверить</div>` : ""}
+        <div class="acts"><button class="btn" data-act="use">${cur && d.id === cur.id ? "Выбрана" : "Выбрать"}</button>${d.custom ? `<button class="btn ghost" data-act="edit">Мои картинки</button>` : `<button class="btn ghost" data-act="map">${HAS_API ? "Проверить карты" : "Все карты"}</button>`}${HAS_API || d.custom ? `<button class="btn danger" data-act="del" title="Удалить колоду">✕</button>` : ""}</div></div>`);
       node.addEventListener("click", e => {
         const a = e.target.closest("[data-act]"); if (!a) return;
         if (a.dataset.act === "use") setDeck(d.id);
         if (a.dataset.act === "map") openMapper(d);
-        if (a.dataset.act === "del") deleteDeck(d);
+        if (a.dataset.act === "edit") openCustomEditor(d.id);
+        if (a.dataset.act === "del") d.custom ? deleteCustom(d) : deleteDeck(d);
       });
       grid.append(node);
     });
     box.append(grid);
+    box.append(customPanel());
     box.append(catalogPanel());
   }
   async function deleteDeck(d) {
@@ -527,6 +583,129 @@
     openModal(node);
   }
 
+  // ——— Начальная страница: «Задай свой вопрос» ———
+  // Основы слов; совпадение ищется только с начала слова («будет» не считается «детьми»)
+  const THEME_WORDS = [
+    ["love", "любов любим любл отношен парн девушк муж жен бывш свидан чувств симпат роман брак свадьб нрав влюб"],
+    ["money", "деньг денег финанс зарплат доход долг кредит бюджет покупк прибыл инвест трат заработ"],
+    ["work", "работ карьер учёб учеб экзамен универ школ проект начальн коллег собеседов ваканс бизнес олимпиад конкурс оценк"],
+    ["home", "дом семь родител мам пап переезд квартир жиль брат сестр ребён ребен дет"],
+    ["health", "здоров болезн болит сил энерги сон сна самочувств устал врач спорт"],
+    ["spirit", "путь пути предназнач духов интуиц смысл душ развит призван"],
+  ].map(([id, w]) => [id, new RegExp("(?<![а-яa-z])(" + w.split(" ").join("|") + ")")]);
+  function detectTheme(q) {
+    q = (q || "").toLowerCase().replace(/ё/g, "е");
+    const hit = THEME_WORDS.find(([, re]) => re.test(q));
+    return hit ? hit[0] : null;
+  }
+  const HOME_SPREADS = [["day", "Карта дня", "1 карта"], ["ppf", "Прошлое · настоящее · будущее", "3 карты"], ["yesno", "Да или нет", "3 карты"],
+    ["lmh", "Любовь, деньги, дом", "4 карты"], ["celtic", "Кельтский крест", "10 карт"], ["free", "Свободный", "сколько угодно"]];
+  const home = { theme: null, manual: false, spread: "ppf" };
+  function renderHome() {
+    if (!$("#homeArt").innerHTML) $("#homeArt").innerHTML = window.ART.framed("venus");
+    if (!$("#homeCards").innerHTML) $("#homeCards").innerHTML = ["vsLovers", "vsStar", "vsMoon", "vsSun"].map(k => window.ART.framed(k, { short: true, thin: true })).join("");
+    const auto = !home.manual ? detectTheme($("#homeQ").value) : null;
+    const th = home.manual ? home.theme : auto || home.theme || "general";
+    $("#homeTheme").textContent = home.manual ? "" : auto ? `Похоже, тема — «${T.themeName(auto)}». Можно выбрать другую:` : "Тема вопроса:";
+    $("#homeChips").innerHTML = M.themes.map(t => `<button type="button" class="chip ${t.id === th ? "on" : ""}" data-id="${t.id}">${t.icon} ${esc(t.name)}</button>`).join("");
+    $("#homeSpreads").innerHTML = HOME_SPREADS.map(([id, n, c]) => `<button type="button" class="${id === home.spread ? "on" : ""}" data-id="${id}">${esc(n)}<small>${esc(c)}</small></button>`).join("") +
+      `<button type="button" data-more="1">Другие схемы…<small>мини-расклады, год, чакры</small></button>`;
+    home.current = th;
+  }
+  $("#homeQ").addEventListener("input", () => { if (!home.manual) renderHome(); });
+  $("#homeChips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (b) { home.theme = b.dataset.id; home.manual = true; renderHome(); } });
+  $("#homeSpreads").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.more) { showTab("spreads"); return; }
+    home.spread = b.dataset.id; renderHome();
+  });
+  $("#homeForm").addEventListener("submit", e => {
+    e.preventDefault();
+    state.question = $("#homeQ").value.trim();
+    state.theme = home.current || "general"; store.set("theme", state.theme);
+    $("#question").value = state.question;
+    renderThemes();
+    setSpread(home.spread, false);
+    showTab("read");
+  });
+  $("#brandHome").onclick = () => showTab("home");
+
+  // ——— Своя колода из картинок ———
+  function customPanel() {
+    const p = h(`<div class="catalog"><h3>Своя колода из картинок</h3>
+      <p class="hint">Сфотографируйте свои карты или загрузите любые картинки и назначьте их картам. Картинки хранятся только в этом браузере. Карты без картинки берутся из выбранной «базовой» колоды.</p>
+      ${window.CUSTOM && window.CUSTOM.supported ? `<div class="row-btns"><input class="input small" id="myTitle" placeholder="Название, например «Моя колода»"><button class="btn" id="myCreate">Создать колоду</button></div>` : `<p class="hint">Этот браузер не поддерживает хранение картинок.</p>`}</div>`);
+    const btn = p.querySelector("#myCreate");
+    if (btn) btn.onclick = async () => {
+      const title = p.querySelector("#myTitle").value.trim() || "Моя колода";
+      const base = (deck() && !deck().custom ? deck() : STATIC_DECKS[0] || {}).id || null;
+      const id = await window.CUSTOM.create(title, base);
+      await refreshDecks(); renderDecks(); openCustomEditor(id);
+    };
+    return p;
+  }
+  async function deleteCustom(d) {
+    if (!window.confirm(`Удалить свою колоду «${d.title}» вместе с картинками?`)) return;
+    await window.CUSTOM.remove(d.id);
+    await refreshDecks();
+    if (state.deckId === d.id) state.deckId = DECKS[0] && DECKS[0].id;
+    renderDecks(); renderPicker(); renderResult();
+  }
+  function openCustomEditor(id) {
+    const d = () => DECKS.find(x => x.id === id);
+    const node = h(`<div><h2>Мои картинки</h2>
+      <div class="mapper-tools">
+        <label>Название<input class="input" data-k="title" style="width:260px"></label>
+        <label>Базовая колода для недостающих карт<select class="input" data-k="base"></select></label>
+      </div>
+      <div class="drop">Перетащите сюда картинки или <u>выберите файлы</u> — они займут пустые места (по имени файла, если в нём есть название карты, иначе по порядку).<input type="file" accept="image/*" multiple hidden></div>
+      <p class="hint">Нажмите на карту, чтобы загрузить для неё картинку. ✕ — вернуть картинку из базовой колоды.</p>
+      <div class="mapper-grid"></div>
+      <div class="row-btns"><button class="btn ghost" data-act="close">Готово</button></div></div>`);
+    const grid = node.querySelector(".mapper-grid"), drop = node.querySelector(".drop"), multi = drop.querySelector("input");
+    const title = node.querySelector("[data-k=title]"), base = node.querySelector("[data-k=base]");
+    title.value = d().title;
+    base.innerHTML = `<option value="">— без базовой —</option>` + STATIC_DECKS.map(x => `<option value="${esc(x.id)}" ${x.id === d().base ? "selected" : ""}>${esc(x.title)}</option>`).join("");
+    title.onchange = async () => { await window.CUSTOM.update(id, { title: title.value.trim() || "Моя колода" }); await refreshDecks(); renderDecks(); };
+    base.onchange = async () => { await window.CUSTOM.update(id, { base: base.value || null }); await refreshDecks(); draw(); renderDecks(); };
+    const draw = () => {
+      const dd = d();
+      grid.innerHTML = ALL.map(c => `<button class="pick" data-id="${c.id}">${dd.cards[c.id] ? `<span class="note-mark" data-del="1" title="Убрать свою картинку">✕</span>` : ""}<div class="img" style="${dd.cards[c.id] ? "" : "opacity:.45"}">${imgTag(c.id, false, dd)}</div><span class="cap">${esc(c.name)}</span></button>`).join("");
+    };
+    const after = async () => { await refreshDecks(); draw(); renderDecks(); renderPicker(); renderResult(); };
+    grid.addEventListener("click", async e => {
+      const b = e.target.closest(".pick"); if (!b) return;
+      const cid = b.dataset.id;
+      if (e.target.closest("[data-del]")) { await window.CUSTOM.removeImage(id, cid); return after(); }
+      const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
+      inp.onchange = async () => { if (inp.files[0]) { await window.CUSTOM.setImage(id, cid, inp.files[0]); after(); } };
+      inp.click();
+    });
+    const addMany = async files => {
+      files = [...files].filter(f => f.type.startsWith("image/")).sort((a, b) => a.name.localeCompare(b.name, "ru", { numeric: true }));
+      const taken = new Set(Object.keys(d().cards));
+      const rest = [];
+      for (const f of files) {
+        const g = window.CUSTOM.guess(f.name);
+        if (g && !taken.has(g)) { await window.CUSTOM.setImage(id, g, f); taken.add(g); } else rest.push(f);
+      }
+      for (const f of rest) {
+        const free = window.CUSTOM.ORDER.find(c => !taken.has(c)); if (!free) break;
+        await window.CUSTOM.setImage(id, free, f); taken.add(free);
+      }
+      toast(`Добавлено картинок: ${files.length}`);
+      after();
+    };
+    drop.onclick = () => multi.click();
+    multi.onchange = () => addMany(multi.files);
+    drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+    drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); addMany(e.dataTransfer.files); });
+    node.querySelector("[data-act=close]").onclick = closeModal;
+    draw();
+    openModal(node);
+  }
+
   // ——— Дневник ———
   function saveJournal(notes) {
     const list = store.get("journal", []);
@@ -537,8 +716,8 @@
   function renderJournal() {
     const list = store.get("journal", []);
     const box = $("#journalView");
-    box.innerHTML = `<h2>Дневник раскладов</h2><p class="hint">Хранится только в этом браузере.</p>`;
-    if (!list.length) { box.append(h(`<div class="empty-state"><div class="blob">${window.DECOR ? window.DECOR.blob("assets/decor/roses.jpg") : ""}</div>Пока пусто. Сохраните расклад кнопкой «Сохранить в дневник».</div>`)); return; }
+    box.innerHTML = `<div class="on-wall"><h2 class="gilt-text">Дневник раскладов</h2><p class="hint">Хранится только в этом браузере.</p></div>`;
+    if (!list.length) { box.append(h(`<div class="empty-state">${window.ART.framed("annunciation")}<p>Пока пусто. Сохраните расклад кнопкой «Сохранить в дневник».</p></div>`)); return; }
     list.forEach((j, idx) => {
       const sp = spreadById(j.spread);
       const d = DECKS.find(x => x.id === j.deck);
@@ -569,8 +748,7 @@
     await refreshDecks();
     if (!deck() && DECKS[0]) state.deckId = DECKS[0].id;
     renderThemes(); renderSpreadSelect(); renderSlots(); renderPicker(); renderResult();
-    const tab = store.get("tab", "read");
-    if (tab !== "read") showTab(tab);
+    showTab(store.get("tab", "home"));
   }
   window.TAROT_APP = { state, place, setSpread, showTab };
   init();
