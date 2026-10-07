@@ -603,8 +603,6 @@
     ["lmh", "Любовь, деньги, дом", "4 карты"], ["celtic", "Кельтский крест", "10 карт"], ["free", "Свободный", "сколько угодно"]];
   const home = { theme: null, manual: false, spread: "ppf" };
   function renderHome() {
-    const now = new Date();
-    $("#homeDate").textContent = now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, c => c.toUpperCase());
     const auto = !home.manual ? detectTheme($("#homeQ").value) : null;
     const th = home.manual ? home.theme : auto || home.theme || "general";
     $("#homeTheme").textContent = home.manual ? "" : auto ? `Похоже, тема — «${T.themeName(auto)}». Можно выбрать другую:` : "Тема вопроса:";
@@ -745,10 +743,15 @@
 
   // ——— Старт ———
   async function init() {
-    await refreshDecks();
+    // Сначала рисуем всё со встроенными колодами, затем догружаем сервер и свои колоды
     if (!deck() && DECKS[0]) state.deckId = DECKS[0].id;
     renderThemes(); renderSpreadSelect(); renderSlots(); renderPicker(); renderResult();
-    showTab(store.get("tab", "home"));
+    const tab = store.get("tab", "home");
+    showTab(tab);
+    await refreshDecks();
+    if (!deck() && DECKS[0]) state.deckId = DECKS[0].id;
+    renderSlots(); renderPicker(); renderResult();
+    if (tab === "decks") renderDecks();
   }
   window.TAROT_APP = { state, place, setSpread, showTab };
   init();
