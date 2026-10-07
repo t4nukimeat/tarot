@@ -5,12 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Таро — личный справочник</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:ital,wght@0,400;0,600;0,700;1,400&family=PT+Mono&family=Rubik+Wet+Paint&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<section class="hero" aria-hidden="false">
+  <div class="hero-inner">
+    <h1 class="logo">Таро</h1><br>
+    <p class="tagline">личный справочник · значения · связи · расклады</p>
+    <span class="whisper w-hide" style="left:46%;top:16%">что скрыто под поверхностью?</span>
+    <span class="whisper" style="left:52%;top:40%;transform:rotate(-3deg)">карта дня ✦ спроси трижды</span>
+    <span class="whisper w-hide" style="left:24%;top:4%;transform:rotate(2deg)">прошлое — настоящее — будущее</span>
+    <span class="whisper w-hide" style="left:44%;top:58%">я не гадаю за тебя, я подсказываю</span>
+    <div class="doodle" style="left:330px;top:18px;width:86px;height:86px"></div>
+    <div class="blob" data-blob="assets/decor/rose.jpg" style="right:4%;top:8%;width:190px;height:190px;transform:rotate(8deg)"></div>
+    <div class="blob b-hide" data-blob="assets/decor/daisies.jpg" data-sw="12" style="right:21%;top:34%;width:120px;height:120px;transform:rotate(-14deg)"></div>
+  </div>
+</section>
 <header class="top">
-  <div class="brand"><span class="brand-star">✶</span> Таро <small>личный справочник</small></div>
+  <div class="brand-mini"><span class="s">✶</span> Таро</div>
   <nav class="tabs" id="tabs">
     <button data-tab="read" class="on">Расклад</button>
     <button data-tab="spreads">Схемы</button>
@@ -100,6 +113,7 @@
 <script src="data/cards-swords-wands.js"></script>
 <script src="data/spreads.js"></script>
 <script src="decks/decks.js"></script>
+<script src="js/decor.js"></script>
 <script src="js/interpret.js"></script>
 <script src="js/app.js"></script>
 </body>

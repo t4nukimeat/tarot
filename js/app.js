@@ -29,6 +29,8 @@
     search: "",
   };
 
+  const deco = (img, cls) => h(`<div class="panel-deco ${cls || ""}">${window.DECOR ? window.DECOR.blob(img, { sw: 13 }) : ""}</div>`);
+
   // ——— Колода и картинки ———
   function deck() { return DECKS.find(d => d.id === state.deckId) || DECKS[0] || null; }
   function img(cardId, d) {
@@ -194,7 +196,7 @@
 
   // ——— Схема на столе ———
   function board(sp, items, size) {
-    const W = size || 86, H = Math.round(W * 1.62), gx = W * 1.18, gy = H * 1.08;
+    const W = size || ((sp.layout.length || items.length) <= 4 ? 128 : (sp.layout.length || items.length) <= 8 ? 104 : 88), H = Math.round(W * 1.62), gx = W * 1.18, gy = H * 1.08;
     let layout = sp.layout;
     if (!sp.positions.length) {
       const n = Math.max(items.length, 1), per = Math.min(n, 7);
@@ -257,6 +259,7 @@
       node.querySelector(".img").onclick = () => openCard(c.id);
       p2.querySelector(".list").append(node);
     });
+    p2.append(deco("assets/decor/roses.jpg"));
     box.append(p2);
 
     if (filled.length >= 2) {
@@ -276,8 +279,9 @@
 
       const sum = T.summary(items, state.theme, sp);
       if (sum.length) {
-        box.append(h(`<div class="panel"><h2>Общая картина</h2>${sum.map(l => `<div class="line"><span class="ic">${ICON[l.kind] || "·"}</span><span>${esc(l.text)}</span></div>`).join("")}
-          <p class="hint">Это подсказки, а не готовый ответ: толкование остаётся за вами.</p></div>`));
+        const pS = h(`<div class="panel"><h2>Общая картина</h2>${sum.map(l => `<div class="line"><span class="ic">${ICON[l.kind] || "·"}</span><span>${esc(l.text)}</span></div>`).join("")}
+          <p class="hint">Это подсказки, а не готовый ответ: толкование остаётся за вами.</p></div>`);
+        pS.append(deco("assets/decor/daisies.jpg")); box.append(pS);
       }
     }
 
@@ -332,11 +336,12 @@
     curSpread = id;
     document.querySelectorAll("#spreadList button").forEach(b => b.classList.toggle("on", b.dataset.id === id));
     const box = $("#spreadDetail");
-    if (id === "guide") { box.innerHTML = GUIDE; return; }
+    if (id === "guide") { box.innerHTML = GUIDE; box.append(deco("assets/decor/mist.jpg")); return; }
     const sp = spreadById(id);
     box.innerHTML = "";
     const fixed = sp.fixedCard ? T.byId[sp.fixedCard] : null;
     box.append(h(`<div><h2>${esc(sp.name)}</h2><p>${esc(sp.about)}</p></div>`));
+    box.append(deco(["assets/decor/rose.jpg", "assets/decor/daisies.jpg", "assets/decor/mist.jpg", "assets/decor/roses.jpg"][window.SPREADS.indexOf(sp) % 4]));
     if (sp.layout.length) {
       const items = sp.positions.map(p => p.fixed ? { id: p.fixed, rev: false } : null);
       const wrap = h(`<div class="board-wrap"></div>`); wrap.append(board(sp, items, 70)); box.append(wrap);
@@ -533,7 +538,7 @@
     const list = store.get("journal", []);
     const box = $("#journalView");
     box.innerHTML = `<h2>Дневник раскладов</h2><p class="hint">Хранится только в этом браузере.</p>`;
-    if (!list.length) { box.append(h(`<div class="empty-state">Пока пусто. Сохраните расклад кнопкой «Сохранить в дневник».</div>`)); return; }
+    if (!list.length) { box.append(h(`<div class="empty-state"><div class="blob">${window.DECOR ? window.DECOR.blob("assets/decor/roses.jpg") : ""}</div>Пока пусто. Сохраните расклад кнопкой «Сохранить в дневник».</div>`)); return; }
     list.forEach((j, idx) => {
       const sp = spreadById(j.spread);
       const d = DECKS.find(x => x.id === j.deck);
